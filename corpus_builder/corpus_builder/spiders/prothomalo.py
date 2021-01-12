@@ -1,4 +1,5 @@
 import datetime
+import json
 import scrapy
 import re
 
@@ -17,6 +18,11 @@ class ProthomAloSpider(scrapy.Spider):
         self.article_path = re.compile(RE_PATH)
         self.count = 0
         self.save_location = save_location
+        self.title_selector = "h1.headline"
+        self.writer_selector = "span.contributor-name"
+        self.publish_date_selector = "div.time-social-share-wrapper > div > span"
+        self.article_selector = "div.story-element-text > div > p"
+
         Path(save_location).mkdir(parents=True, exist_ok=True)
 
 
@@ -45,7 +51,21 @@ class ProthomAloSpider(scrapy.Spider):
                 url = url.strip()
                 yield scrapy.Request(url=url, callback=self.parse)
         else: 
-            filename = unquote(f"{self.article_path.findall(response.url)[0]}.html")
-            with open(f"{self.save_location}/{filename}", 'wb') as file:
-                file.write(response.body)
+            title = response.css(f"{self.title_selector}::text").get()
+            writer = response.css(f"{self.writer_selector}::text").get()
+            publishing_date = response.css(f"{self.publish_date_selector}::text").get()
+            article_segments = response.css(f"{self.article_selector}::text").getall()
+            article = " ".join(article_segments)
+
+            data_buffer = {
+                "title" : title,
+                "writer" : writer,
+                "publishing_date" : publishing_date,
+                "article" : article
+            }
+
+            data_buffer_json = json.dumps(data_buffer, ensure_ascii=False)
+            filename = unquote(f"{self.article_path.findall(response.url)[0]}.json")
+            with open(f"{self.save_location}/{filename}", 'w') as file:
+                file.write(data_buffer_json)
                 self.log(f"Saved file: {filename}")
