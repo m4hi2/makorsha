@@ -3,3 +3,5 @@ venv
 .env
 .txt
 .json
+log.txt
+**/.scrapy/*
