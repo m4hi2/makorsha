@@ -14,7 +14,7 @@ RE_PATH = r"/([^a-z | /]+)"  # The last part of the URL
 class ProthomAloSpider(scrapy.Spider):
     name = "prothomalo"
 
-    def __init__(self, save_location="./"):
+    def __init__(self, save_location="./", start_date=None, end_date=None):
         self.article_path = re.compile(RE_PATH)
         self.count = 0
         self.save_location = save_location
@@ -23,14 +23,25 @@ class ProthomAloSpider(scrapy.Spider):
         self.publish_date_selector = "div.time-social-share-wrapper > div > span"
         self.article_selector = "div.story-element-text > div > p"
 
+        if not start_date:
+            self.start_date = datetime.date.today()
+        else:
+            self.start_date = format_date(start_date)
+        
+        if not end_date:
+            # Prothom Alo's oldest sitemap is to this date
+            self.end_date = datetime.date(2009, 9, 1) 
+        else:
+            self.end_date = format_date(end_date)
+
         Path(save_location).mkdir(parents=True, exist_ok=True)
 
 
     def start_requests(self):
         base_url = "https://www.prothomalo.com/sitemap/sitemap-daily-"
-        current = datetime.date.today()
+        current = self.start_date
         delta = datetime.timedelta(days=-1)
-        while int(current.strftime("%Y")) > 2009:
+        while current >= self.end_date:
             date_str = current.strftime("%Y-%m-%d")
             current = current + delta
             url = f"{base_url}{date_str}.xml"
@@ -69,3 +80,12 @@ class ProthomAloSpider(scrapy.Spider):
             with open(f"{self.save_location}/{filename}", 'w') as file:
                 file.write(data_buffer_json)
                 self.log(f"Saved file: {filename}")
+
+
+def format_date(raw_date):
+    """
+    Extracts date from YYYY-MM-DD format and returns a date object.
+    """
+    date_fragments = raw_date.split("-")
+    return datetime.date(*[int(i) for i in date_fragments])
+    
