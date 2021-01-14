@@ -14,8 +14,8 @@ class BDnewsSpider(scrapy.Spider):
     Spider for bdnews24.com
     """
     name = "bdnews"
-    # start_urls = ["https://bangla.bdnews24.com/archive/?date=2007-06-01"]
-    start_urls = ["https://bangla.bdnews24.com/archive/?date=2021-01-06"]
+    start_urls = ["https://bangla.bdnews24.com/archive/?date=2007-06-01"]
+    # start_urls = ["https://bangla.bdnews24.com/archive/?date=2021-01-06"]
 
     def __init__(self, save_location="./", start_date=None, end_date=None):
         self.article_path = re.compile(RE_PATH)
@@ -25,7 +25,7 @@ class BDnewsSpider(scrapy.Spider):
         self.writer_selector = "span.authorName::text"
         self.publish_date_selector = ".dateline > span:nth-child(2)::text"
         self.article_selector = "div.custombody > p::text"
-        # self.arternet_article_selector = ""
+        self.arternet_article_selector = ".custombody"
 
 
         if not start_date:
@@ -55,8 +55,15 @@ class BDnewsSpider(scrapy.Spider):
             publishing_date = response.css(self.publish_date_selector).get()
             article_segments = response.css(self.article_selector).getall()
             article = " ".join([s.strip() for s in article_segments])
+            if not article:
+                article_element = response.css(self.arternet_article_selector).get()
+                article_element = article_element.replace("\n", " ")
+                article = re.findall(r"</style>(.*)</div>", article_element)
+                if len(article) > 0:
+                    article = article[0]
+                    article = article.replace("<br>", " ")
+
             article = article.replace("\n", " ")
-            # article = " ".join(article_segments)
 
             data_buffer = {
                 "title" : title, 
