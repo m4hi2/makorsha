@@ -18,6 +18,7 @@ class BDnewsSpider(scrapy.Spider):
         self.article_path = re.compile(RE_PATH)
         self.count = 0
         self.save_location = save_location
+        self.save_location_segment = None
         self.title_selector = "h1.print-only::text"
         self.writer_selector = "span.authorName::text"
         self.publish_date_selector = ".dateline > span:nth-child(2)::text"
@@ -84,11 +85,12 @@ class BDnewsSpider(scrapy.Spider):
             filename = f"{self.article_path.findall(response.url)[0]}.json"
 
             if self.count % 10000 == 0:
-                self.save_location = self.save_location + "/" + str(self.count // 10000)
-                Path(self.save_location).mkdir(parents=True, exist_ok=True)
+                self.save_location_segment = self.save_location + "/" + str(self.count // 10000)
+                Path(self.save_location_segment).mkdir(parents=True, exist_ok=True)
             
-            with open(f"{self.save_location}/{filename}", 'w') as file:
+            file_save_path = f"{self.save_location_segment}/{filename}"
+            with open(file_save_path, 'w') as file:
                 file.write(data_buffer_json)
-                self.log(f"Saved file: {filename}")
+                self.log(f"Saved file: {file_save_path}")
                 self.log(f"Count: {self.count}")
                 self.count += 1
