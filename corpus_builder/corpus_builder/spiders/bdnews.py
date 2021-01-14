@@ -14,9 +14,6 @@ class BDnewsSpider(scrapy.Spider):
     Spider for bdnews24.com
     """
     name = "bdnews"
-    start_urls = ["https://bangla.bdnews24.com/archive/?date=2007-06-01"]
-    # start_urls = ["https://bangla.bdnews24.com/archive/?date=2021-01-06"]
-
     def __init__(self, save_location="./", start_date=None, end_date=None):
         self.article_path = re.compile(RE_PATH)
         self.count = 0
@@ -40,6 +37,17 @@ class BDnewsSpider(scrapy.Spider):
             self.end_date = format_date(end_date)
 
         Path(save_location).mkdir(parents=True, exist_ok=True)
+
+
+    def start_requests(self):
+        base_url = "https://bangla.bdnews24.com/archive/?date="
+        current = self.start_date
+        delta = datetime.timedelta(days=-1)
+        while current >= self.end_date:
+            date_str = current.strftime("%Y-%m-%d")
+            current = current + delta
+            url = f"{base_url}{date_str}"
+            yield scrapy.Request(url=url, callback=self.parse)
 
     
     def parse(self, response):
