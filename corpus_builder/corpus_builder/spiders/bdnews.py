@@ -7,7 +7,7 @@ from format_date import format_date
 from pathlib import Path
 
 
-RE_PATH = r"/(article+\d+.\w+)"
+RE_PATH = r"/([a-z]+\d+.\w+)$"
 
 class BDnewsSpider(scrapy.Spider):
     """
