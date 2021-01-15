@@ -14,7 +14,7 @@ RE_PATH = r"/([^a-z | /]+)"  # The last part of the URL
 class ProthomAloSpider(scrapy.Spider):
     name = "prothomalo"
 
-    def __init__(self, save_location="./", start_date=None, end_date=None):
+    def __init__(self, save_location="./prothomalo", start_date=None, end_date=None):
         self.article_path = re.compile(RE_PATH)
         self.count = 0
         self.save_location = save_location

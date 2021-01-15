@@ -14,7 +14,7 @@ class BDnewsSpider(scrapy.Spider):
     Spider for bdnews24.com
     """
     name = "bdnews"
-    def __init__(self, save_location="./", start_date=None, end_date=None):
+    def __init__(self, save_location="./bdnews", start_date=None, end_date=None):
         self.article_path = re.compile(RE_PATH)
         self.count = 0
         self.save_location = save_location
